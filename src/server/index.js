@@ -6,6 +6,8 @@ import express from 'express'
 import { APP_NAME, STATIC_PATH, WEB_PORT } from '../shared/config'
 import { isProd } from '../shared/util'
 import renderApp from './render-app'
+import wand from './wand'
+import canvas from './canvas'
 
 const app = express()
 
@@ -16,6 +18,15 @@ app.use(STATIC_PATH, express.static('public'))
 
 app.get('/', (req, res) => {
   res.send(renderApp(APP_NAME))
+})
+
+app.get('/wand', (req, res) => {
+  res.send(wand())
+})
+
+
+app.get('/canvas', (req, res) => {
+  res.send(canvas())
 })
 
 app.listen(WEB_PORT, () => {
