@@ -1,6 +1,6 @@
 // @flow
 
-import { STATIC_PATH } from '../shared/config'
+// import { STATIC_PATH } from '../shared/config'
 
 const canvas = () =>
 `<!doctype html>
@@ -9,64 +9,57 @@ const canvas = () =>
     <title>Canvas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"> </script>
     <script src="https://unpkg.com/mqtt@2.7.1/dist/mqtt.min.js"> </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script>
       $(document).ready(function() {
+				var svg = d3.select('body')
+					.append('svg')
+					.attr('width', 1000)
+					.attr('height', 1000);
+					
+				var color = d3.scale.category20();
+				
+				var line = d3.svg.line()
+						.interpolate("basis");
+				
+				var drawObj = {
+					isDown: true,//false,
+					dataPoints: [[100,100]],
+					currentPath: null,
+					color: 0
+				}
+
         var client = mqtt.connect("ws://test.mosca.io");
-        channel = prompt("Whats the channel name?");
+        channel = "jack" ;//prompt("Whats the channel name?");
         client.subscribe(channel);
 
         client.on("message", function (topic, payload) {
-					coordinates = payload.toString().split(" ")
-					console.log("choo" +  coordinates);
-					update.apply(Object.create(null), coordinates)	
-        })
-				
-				var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: create,  render: render });
+          movements = payload.toString().split(" ")
+					movement_x = parseFloat(movements[0])
+					movement_y = parseFloat(movements[1])
+					movement_z = parseFloat(movements[2])
+          
+          console.log(drawObj)
+          new_x = drawObj.dataPoints[drawObj.dataPoints.length - 1][0] + movement_x
+          new_y = drawObj.dataPoints[drawObj.dataPoints.length - 1][1] + movement_y
+					
+					drawObj.dataPoints.push([new_x, new_y])
 
-				function preload() {
-					game.load.image('phaser', "${STATIC_PATH}/ball.png");
-				}
+					if (!drawObj.currentPath){
+						console.log("jack");
+						drawObj.currentPath = svg.append("path")
+							.attr("class","currentPath")
+							.style("stroke-width", 1)
+							.style("stroke",color(drawObj.color))
+							.style("fill", "none");
+					}
+					drawObj.currentPath
+						.datum(drawObj.dataPoints)
+						.attr("d", line);
+				});
+        
 
-				var sprite;
-
-				function create() {
-
-						//  To make the sprite move we need to enable Arcade Physics
-						game.physics.startSystem(Phaser.Physics.ARCADE);
-
-						sprite = game.add.sprite(game.world.centerX, game.world.centerY, 'phaser');
-						sprite.anchor.set(0.5);
-
-						//  And enable the Sprite to have a physics body:
-						game.physics.arcade.enable(sprite);
-
-				}
-
-				function update(x,y,z) {
-			//			//  If the sprite is > 8px away from the pointer then let's move to it
-			//			//if (game.physics.arcade.distanceToPointer(sprite, game.input.activePointer) > 8)
-			//			{
-			//					//  Make the object seek to the active pointer (mouse or touch).
-			//					game.physics.arcade.moveToPointer(sprite, 300);
-			//			}
-			//			else
-			//			{
-			//					//  Otherwise turn off velocity because we're close enough to the pointer
-			//					sprite.body.velocity.set(0);
-			//			}
-					console.log("yo", x, y)
-					x = parseFloat(x)
-					y = parseFloat(y)
-					console.log("sprite", sprite.x, sprite.y, x, y)
-					game.physics.arcade.moveToXY(sprite, sprite.x + x, sprite.y + y)
-				}
-
-				function render () {
-					game.debug.inputInfo(32, 32);
-				}
-			 
-      });
+		  });
     </script>
   </head>
   <body>
