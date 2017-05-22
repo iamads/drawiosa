@@ -8,14 +8,6 @@ const wand = () =>
   <head>
     <title>Wand</title>
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      .send_message { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      .send_message input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      .send_message button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"> </script>
     <script src="https://unpkg.com/mqtt@2.7.1/dist/mqtt.min.js"> </script>
@@ -26,26 +18,46 @@ const wand = () =>
         channel = prompt("Whats the channel name?");
         client.subscribe(channel);
 
+				var cool_button_state = { wand: "up" }
+
+				function toggle_and_send_cool_button_state(){
+					if (cool_button_state.wand === "down"){
+						cool_button_state.wand = "up"
+					} else {
+						cool_button_state.wand = "down"
+					}
+					console.log(channel, cool_button_state)
+					client.publish(channel, JSON.stringify(cool_button_state))
+				}
+
+
         client.on("message", function (topic, payload) {
-          $('#messages').append($('<li>').text(payload));
+          //$('#messages').append($('<li>').text(payload));
         })
 
         var gn = new GyroNorm();
 
         gn.init({frequency: 300}).then(function(){
           gn.start(function(data){
-            client.publish(channel,  data.dm.gx + " " + data.dm.gy + " " + data.dm.gz )
+            client.publish(channel, JSON.stringify({ wand: "move", x: data.dm.gx, y: data.dm.gy, z: data.dm.gz }) )
           })
         }).catch(function(e){
           console.log(e) 
         });
+
+				$('#cool_button').on('click', function(){
+					console.log("clicked")
+					toggle_and_send_cool_button_state()
+				})
+
+				toggle_and_send_cool_button_state()
       });
     </script>
   </head>
   <body>
     <ul id="messages"></ul>
     <div class="send_message">
-      <input id="m" autocomplete="off" /><button id="send">Send</button>
+      <button type="button" id="cool_button" style="background-color: royalblue; border: none; color: white; padding: 200px 200px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer;"> Click Me!</button>
     </div>
   </body>
 </html>
