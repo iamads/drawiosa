@@ -6,16 +6,38 @@ const canvas = () =>
 `<!doctype html>
 <html>
   <head>
+		<style>
+			.dot { fill:lightblue; stroke:#999999; }
+		</style>
     <title>Canvas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"> </script>
     <script src="https://unpkg.com/mqtt@2.7.1/dist/mqtt.min.js"> </script>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script>
       $(document).ready(function() {
+				var MAX_HEIGHT = 700;
+				var MAX_WIDTH = 1200;
+
+				var INIT_X = 600
+				var INIT_Y = 350
+
 				var svg = d3.select('body')
 					.append('svg')
-					.attr('width', 1000)
-					.attr('height', 1000);
+					.attr('width', MAX_WIDTH)
+					.attr('height', MAX_HEIGHT)
+
+				svg.append("rect")
+					.attr("width", MAX_WIDTH)
+					.attr("height", MAX_HEIGHT)
+					.style("stroke", "#999999")
+					.style("fill", "#F6F6F6")
+
+				svg.append("circle")
+					.attr("cx", INIT_X)
+					.attr("cy", INIT_Y)
+					.attr("r", "5")
+					.attr("class", "dot")
+					.style("cursor", "pointer")
 					
 				var color = d3.scale.category20();
 				
@@ -24,9 +46,14 @@ const canvas = () =>
 				
 				var drawObj = {
 					isDown: false,
-					dataPoints: [[100,100]],
+					dataPoints: [[INIT_X, INIT_Y]],
 					currentPath: null,
 					color: 0
+				}
+
+				var coordinateObject = {
+					x: INIT_X,
+					y: INIT_Y
 				}
 
         var client = mqtt.connect("ws://test.mosca.io");
@@ -42,22 +69,29 @@ const canvas = () =>
           }
 
           if (message.wand === "move"){
-            if (drawObj.isDown){
-              movement_x = parseFloat(message.x)
-              movement_y = parseFloat(message.y)
-              movement_z = parseFloat(message.z)
-							if (drawObj.dataPoints.length > 0) {
-								new_x = drawObj.dataPoints[drawObj.dataPoints.length - 1][0] + movement_x
-								new_y = drawObj.dataPoints[drawObj.dataPoints.length - 1][1] + movement_y
-							} else {
-								new_x = movement_x
-								new_y = movement_y
-							}
+						movement_x = parseFloat(message.x)
+						movement_y = parseFloat(message.y)
+					  movement_z = parseFloat(message.z)
 
+						if (drawObj.dataPoints.length > 0) {
+							new_x = drawObj.dataPoints[drawObj.dataPoints.length - 1][0] + movement_x
+							new_y = drawObj.dataPoints[drawObj.dataPoints.length - 1][1] + movement_y
+						} else {
+							new_x = coordinateObject.x + movement_x
+							new_y = coordinateObject.y + movement_y
+						}
+
+
+						coordinateObject = { x: new_x, y: new_y }
+
+						svg.select("circle")
+							.attr("cx", new_x)
+							.attr("cy", new_y)
+
+            if (drawObj.isDown){
               drawObj.dataPoints.push([new_x, new_y]);
             }
             if (!drawObj.currentPath){
-              console.log("jack");
               drawObj.currentPath = svg.append("path")
                 .attr("class","currentPath")
                 .style("stroke-width", 1)
