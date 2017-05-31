@@ -9,7 +9,7 @@
   ],
   "rules": {
     "semi": [2, "never"],
-    "indent": [2, "tab"],
+    "indent": ["error", 2],
     "no-tabs": 0,
     "no-unexpected-multiline": 2,
     "compat/compat": 2

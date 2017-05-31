@@ -40,8 +40,12 @@
     "rimraf": "^2.6.1"
   },
   "dependencies": {
+    "bluebird": "^3.5.0",
+    "body-parser": "^1.17.2",
     "compression": "^1.6.2",
+    "cookie-parser": "^1.4.3",
     "express": "^4.15.3",
-    "flow": "^0.2.3"
+    "flow": "^0.2.3",
+    "mongoose": "^4.10.4"
   }
 }
