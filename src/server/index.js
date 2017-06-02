@@ -14,6 +14,8 @@ import { isProd } from '../shared/util'
 import renderApp from './render-app'
 import wand from './wand'
 import canvas from './canvas'
+import auth from './auth'
+import models from './models'
 
 mongoose.Promise = bluebird
 
@@ -51,11 +53,21 @@ app.use(passport.session())
    *  Social auth
    */
 
-app.get('/auth/twitter', passport.authenticate('twitter'))
+passport.use(auth.twitter)
+app.get('/auth/twitter', passport.authenticate('twitter', { scope: ['email'] }))
 
 app.get('/auth/twitter/callback',
     passport.authenticate('twitter', { successRedirect: '/wand', failureRedirect: '/login' }))
 
+passport.serializeUser((user, done) => {
+  done(null, user.email)
+})
+
+passport.deserializeUser((email, done) => {
+  models.User.findOne({ email }).exec()
+    .then((data) => { done(null, data) })
+    .catch((err) => { done(err) })
+})
 
 app.get('/', (req, res) => {
   res.send(renderApp(APP_NAME))
