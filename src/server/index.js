@@ -54,10 +54,19 @@ app.use(passport.session())
    */
 
 passport.use(auth.twitter)
+passport.use(auth.google)
+
 app.get('/auth/twitter', passport.authenticate('twitter', { scope: ['email'] }))
 
 app.get('/auth/twitter/callback',
     passport.authenticate('twitter', { successRedirect: '/wand', failureRedirect: '/login' }))
+
+app.get('/auth/google', passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login',
+  'https://www.googleapis.com/auth/userinfo.email'] }))
+
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
+  res.redirect('/wand')
+})
 
 passport.serializeUser((user, done) => {
   done(null, user.email)
