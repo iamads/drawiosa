@@ -8,10 +8,10 @@ import mongoose from 'mongoose'
 import bluebird from 'bluebird'
 import passport from 'passport'
 import session from 'express-session'
+import path from 'path'
 
-import { APP_NAME, STATIC_PATH, WEB_PORT } from '../shared/config'
+import { STATIC_PATH, WEB_PORT } from '../shared/config'
 import { isProd } from '../shared/util'
-import renderApp from './render-app'
 import wand from './wand'
 import canvas from './canvas'
 import auth from './auth'
@@ -77,9 +77,8 @@ passport.deserializeUser((email, done) => {
     .then((data) => { done(null, data) })
     .catch((err) => { done(err) })
 })
-
 app.get('/', (req, res) => {
-  res.send(renderApp(APP_NAME))
+  res.sendFile(path.join(__dirname, '../../public/index.html'))
 })
 
 app.get('/wand', (req, res) => {
