@@ -77,12 +77,25 @@ passport.deserializeUser((email, done) => {
     .then((data) => { done(null, data) })
     .catch((err) => { done(err) })
 })
+
+function loggedIn(req, res, next) {
+  if (req.user) {
+    next()
+  } else {
+    res.redirect('/login')
+  }
+}
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../../public/index.html'))
 })
 
-app.get('/wand', (req, res) => {
+app.get('/wand', loggedIn, (req, res) => {
   res.send(wand())
+})
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../public/login.html'))
 })
 
 
